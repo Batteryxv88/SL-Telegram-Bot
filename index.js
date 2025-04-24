@@ -28,12 +28,12 @@ let lastUpdateId = 0;
 let scheduled = false;
 
 // --- Утилита отправки в Telegram ---
-async function sendTelegramMessage(chatId, text) {
+async function sendTelegramMessage(chatId, text, options = {}) {
   try {
     const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ chat_id: chatId, text })
+      body: JSON.stringify({ chat_id: chatId, text, ...options })
     });
     if (!res.ok) {
       const err = await res.json();
@@ -137,7 +137,16 @@ async function handleCommand(chatId, text) {
   const [cmd, ...args] = text.split(' ');
   switch (cmd) {
     case '/start':
-      await sendTelegramMessage(chatId, 'Бот запущен и готов к работе!');
+      await sendTelegramMessage(chatId, 'Бот запущен и готов к работе!', {
+        reply_markup: {
+          keyboard: [
+            ['/status', '/test'],
+            ['/set']
+          ],
+          resize_keyboard: true,
+          one_time_keyboard: false
+        }
+      });
       break;
     case '/status':
       await getMaterialsStatus(chatId);
