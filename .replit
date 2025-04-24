@@ -1,3 +1,4 @@
+run = "npm install && npm start"
 entrypoint = "index.js"
 modules = ["nodejs-22"]
 hidden = [".config", "package-lock.json"]
