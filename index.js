@@ -2,6 +2,21 @@ import 'dotenv/config';
 import admin from 'firebase-admin';
 import fetch from 'node-fetch';
 import express from 'express';
+import fs from 'fs';
+
+const CHAT_FILE = 'chats.json';
+// Load saved chat IDs
+let CHAT_IDS = new Set();
+try {
+  const raw = fs.readFileSync(CHAT_FILE, 'utf8');
+  CHAT_IDS = new Set(JSON.parse(raw));
+  console.log('Loaded chats:', [...CHAT_IDS]);
+} catch (e) {
+  console.log('No existing chats file, will create it.');
+}
+function saveChats() {
+  fs.writeFileSync(CHAT_FILE, JSON.stringify([...CHAT_IDS], null, 2), 'utf8');
+}
 
 // --- ENV-переменные (задать в Replit Secrets) ---
 const BOT_TOKEN = process.env.BOT_TOKEN;
@@ -23,7 +38,7 @@ admin.initializeApp({
 const db = admin.firestore();
 
 // --- Состояние бота ---
-let CHAT_ID = null;
+// let CHAT_ID = null; // больше не используется
 let lastUpdateId = 0;
 let scheduled = false;
 
@@ -57,13 +72,15 @@ async function getUpdates() {
         if (upd.message) {
           const chatId = upd.message.chat.id;
           const text   = upd.message.text;
-          if (!CHAT_ID) {
-            CHAT_ID = chatId;
-            console.log('Got CHAT_ID:', CHAT_ID);
-            if (!scheduled) {
-              scheduleNextCheck();
-              scheduled = true;
-            }
+          // Save chat ID if new
+          if (!CHAT_IDS.has(chatId)) {
+            CHAT_IDS.add(chatId);
+            saveChats();
+            console.log('Registered new chat:', chatId);
+          }
+          if (!scheduled) {
+            scheduleNextCheck();
+            scheduled = true;
           }
           await handleCommand(chatId, text);
         }
@@ -198,7 +215,10 @@ function scheduleNextCheck() {
   const delay = target - now;
   console.log('Next check at', target.toLocaleString());
   setTimeout(async () => {
-    if (CHAT_ID) await checkMaterials(CHAT_ID);
+    // Send checks to all chats
+    for (const id of CHAT_IDS) {
+      await checkMaterials(id);
+    }
     scheduleNextCheck();
   }, delay);
 }
