@@ -96,6 +96,13 @@ async function checkMaterials(chatId) {
   }
 }
 
+// Helper to compare dates ignoring time
+function isSameDay(d1, d2) {
+  return d1.getFullYear() === d2.getFullYear() &&
+         d1.getMonth() === d2.getMonth() &&
+         d1.getDate() === d2.getDate();
+}
+
 // --- Статус всех материалов ---
 async function getMaterialsStatus(chatId) {
   try {
@@ -111,6 +118,25 @@ async function getMaterialsStatus(chatId) {
         msg += `${type}: ${qty} шт.\n`;
       });
     }
+    // Добавляем информацию об аудите склада
+    const auditSnap = await db.collection('inventoryCheck').get();
+    let auditMsg = '\nАудит склада сегодня не проводился';
+    if (!auditSnap.empty) {
+      let latest = null;
+      auditSnap.forEach(doc => {
+        const d = doc.data();
+        const dateVal = d.date;
+        const dateObj = dateVal.toDate ? dateVal.toDate() : new Date(dateVal);
+        if (!latest || dateObj > latest.date) {
+          latest = { date: dateObj, userName: d.userName };
+        }
+      });
+      const today = new Date();
+      if (latest && isSameDay(latest.date, today)) {
+        auditMsg = `\nАудит склада выполнен сегодня. Исполнитель: ${latest.userName}`;
+      }
+    }
+    msg += auditMsg;
     await sendTelegramMessage(chatId, msg);
   } catch (e) {
     console.error('getMaterialsStatus error:', e);
