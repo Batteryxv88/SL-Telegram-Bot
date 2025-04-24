@@ -1,5 +1,3 @@
-run = "npm install && npm start"
-language = "nodejs" 
 import 'dotenv/config';
 import admin from 'firebase-admin';
 import fetch from 'node-fetch';
