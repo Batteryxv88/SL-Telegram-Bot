@@ -140,28 +140,24 @@ async function handleCommand(chatId, text) {
       await sendTelegramMessage(chatId, 'Бот запущен и готов к работе!', {
         reply_markup: {
           keyboard: [
-            ['/status', '/test'],
-            ['/set']
+            ['Статус', 'Тест']
           ],
           resize_keyboard: true,
           one_time_keyboard: false
         }
       });
       break;
+
     case '/status':
+    case 'Статус':
       await getMaterialsStatus(chatId);
       break;
-    case '/set':
-      if (args.length === 2) {
-        await updateMaterialQuantity(chatId, args[0], args[1]);
-      } else {
-        await sendTelegramMessage(chatId, 'Использование: /set [материал] [количество]');
-      }
-      break;
+
     case '/test':
+    case 'Тест':
       await checkMaterials(chatId);
-      await sendTelegramMessage(chatId, 'Проверка материалов выполнена');
       break;
+
     default:
       await sendTelegramMessage(chatId, 'Неизвестная команда');
   }
