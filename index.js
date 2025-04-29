@@ -111,9 +111,6 @@ async function checkMaterials(chatId) {
   } catch (e) {
     console.error('checkMaterials error:', e);
   }
-}
-
-async function checkToners(chatId) {
   try {
     const snapshot = await db.collection('TonersStorage').get();
     const low = [];
@@ -240,8 +237,8 @@ async function handleCommand(chatId, text) {
     case '/test':
     case 'Тест':
       await checkMaterials(chatId);
-      await checkToners(chatId);
       break;
+      
 
     default:
       await sendTelegramMessage(chatId, 'Неизвестная команда');
@@ -260,7 +257,6 @@ function scheduleNextCheck() {
     // Send checks to all chats
     for (const id of CHAT_IDS) {
       await checkMaterials(id);
-      await checkToners(id);
     }
     scheduleNextCheck();
   }, delay);
