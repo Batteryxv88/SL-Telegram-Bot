@@ -113,6 +113,27 @@ async function checkMaterials(chatId) {
   }
 }
 
+async function checkToners(chatId) {
+  try {
+    const snapshot = await db.collection('TonersStorage').get();
+    const low = [];
+    snapshot.forEach(doc => {
+      const d = doc.data();
+      const qty  = d.qty || 0;
+      const color = d.color || doc.id;
+      if (qty <= 8) low.push({ color, qty });
+    });
+    if (low.length) {
+      let msg = 'Склад тонеров. Следующие тонеры заканчиваются:\n\n';
+      low.forEach(m => { msg += `${m.color}: ${m.qty} шт.\n`; });
+      msg += '\nНеобходим срочный заказ!';
+      await sendTelegramMessage(chatId, msg);
+    }
+  } catch (e) {
+    console.error('checkToners error:', e);
+  }
+}
+
 // Helper to compare dates ignoring time
 function isSameDay(d1, d2) {
   return d1.getFullYear() === d2.getFullYear() &&
@@ -219,6 +240,7 @@ async function handleCommand(chatId, text) {
     case '/test':
     case 'Тест':
       await checkMaterials(chatId);
+      await checkToners(chatId);
       break;
 
     default:
@@ -238,6 +260,7 @@ function scheduleNextCheck() {
     // Send checks to all chats
     for (const id of CHAT_IDS) {
       await checkMaterials(id);
+      await checkToners(id);
     }
     scheduleNextCheck();
   }, delay);
