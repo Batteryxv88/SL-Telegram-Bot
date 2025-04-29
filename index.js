@@ -128,11 +128,31 @@ async function getMaterialsStatus(chatId) {
     if (snapshot.empty) {
       msg += 'Нет доступных материалов';
     } else {
+      // Выводим материалы в заданном порядке
+      const typesOrder = ['FA', 'FH', 'PA', 'PH', 'Clear', 'Metall', 'Verge'];
+      const dataMap = {};
       snapshot.forEach(doc => {
         const d = doc.data();
-        const qty  = d.qty || 0;
         const type = d.type || doc.id;
+        const qty = d.qty || 0;
+        dataMap[type] = qty;
+      });
+      typesOrder.forEach(type => {
+        const qty = dataMap[type] || 0;
         msg += `${type}: ${qty} шт.\n`;
+      });
+    }
+    // Добавляем информацию о количестве тонеров
+    const tonersSnap = await db.collection('TonersStorage').get();
+    msg += '\n\nТекущее количество тонеров:\n\n';
+    if (tonersSnap.empty) {
+      msg += 'Нет доступных тонеров';
+    } else {
+      tonersSnap.forEach(doc => {
+        const d = doc.data();
+        const color = d.color || doc.id;
+        const qty = d.qty || 0;
+        msg += `${color}: ${qty} шт.\n`;
       });
     }
     // Добавляем информацию об аудите склада
@@ -237,7 +257,7 @@ app.get('/ping', (req, res) => {
   res.send('Bot is alive!');
 });
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`Express server is running on port ${PORT}`);
 });
