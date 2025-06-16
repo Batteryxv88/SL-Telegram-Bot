@@ -362,7 +362,7 @@ class SLBot:
     
     def check_materials_job(self):
         """Задача для планировщика - проверка материалов"""
-        logger.info("Запуск плановой проверки материалов в 22:00")
+        logger.info("Запуск плановой проверки материалов в 14:00")
         
         # Создаем новый event loop для этого потока
         loop = asyncio.new_event_loop()
@@ -385,8 +385,8 @@ class SLBot:
     
     def start_scheduler(self):
         """Запуск планировщика задач"""
-        # Планируем проверку каждый день в 22:00
-        schedule.every().day.at("22:00").do(self.check_materials_job)
+        # Планируем проверку каждый день в 14:00
+        schedule.every().day.at("14:00").do(self.check_materials_job)
         
         def run_scheduler():
             while True:
@@ -396,7 +396,7 @@ class SLBot:
         # Запускаем планировщик в отдельном потоке
         scheduler_thread = Thread(target=run_scheduler, daemon=True)
         scheduler_thread.start()
-        logger.info("Планировщик запущен. Проверка материалов каждый день в 22:00")
+        logger.info("Планировщик запущен. Проверка материалов каждый день в 14:00")
     
     def run(self):
         """Запуск бота"""
